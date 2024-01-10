@@ -20,8 +20,7 @@ function App() {
     <Chessboard position={[-0.087797,-0.1,-0.009988]}/>
     <Environment preset='apartment' background/>
       <Stats />
-      {/* eslint-disable-next-line react/no-unknown-property */}
-      <axesHelper args={[15]} />
+      <axesHelper/>
       </Canvas>
       <span 
         className='btn--start'
