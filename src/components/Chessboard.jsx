@@ -128,7 +128,7 @@ export function Chessboard(props) {
 
   return (
     <>
-    {/* <GameInfo whiteTurn={active.whiteTurn}/> */}
+    <GameInfo whiteTurn={active.whiteTurn}/>
     <group ref={group} {...props}  dispose={null} castShadow>
       <group name="Scene" scale={[0.2,0.2,0.2]} >
         {/* <Table receiveShadow={true} castShadow={true}/> */}
