@@ -12,6 +12,7 @@ import { Table } from './Table'
 import { Pawn, Knight, Bishop, Rook, Queen, King }  from './Pieces'
 import { useFrame } from '@react-three/fiber'
 import { useAudio } from '../hooks/useAudio'
+import GameInfo from './gameInfo'
 
 export function Chessboard(props) {
   const group = useRef()
@@ -19,37 +20,47 @@ export function Chessboard(props) {
   const planesRef = useRef({})
   
   const [active, setActive] = useState({
-    activePiece: null
+    activePiece: null,
+    whiteTurn: true,
   })
   const { nodes, materials, animations } = useGLTF('/assets/chessboard.glb')
   const { actions } = useAnimations(animations, group)
 
-  const [moveAudioPlaying, playMoveAudio] = useAudio('../../public/move-self.mp3');
-  const [captureAudioPlaying, playCaptureAudio] = useAudio('../../public/capture.mp3');
+  const [moveAudioPlaying, playMoveAudio] = useAudio('/move-self.mp3');
+  const [captureAudioPlaying, playCaptureAudio] = useAudio('/capture.mp3');
 
   useFrame(()=>{
     TWEEN.update()
   })
 
-  const getCenterPoint = (mesh) => {
-    var geometry = mesh.geometry;
-    geometry.computeBoundingBox();
-    var center = new Vector3();
-    geometry.boundingBox.getCenter( center );
-    mesh.localToWorld( center );
-    return center;
-  }
-
   const activatePiece = (e, refCurrent) => {
     e.stopPropagation()
   
     if(active.activePiece == null) {
-      // refCurrent.position.y += 1.4
-      setActive({activePiece: refCurrent})
+      new TWEEN.Tween(refCurrent.position)
+      .to(
+        {
+          y: refCurrent.position.y+1,
+        },
+        400
+      )
+      .easing(TWEEN.Easing.Cubic.InOut)
+      .start()
+      setActive({ ...active, activePiece: refCurrent})
     } else {
-      // active.activePiece.position.y -= 1.4
-      tileOnClick(e, refCurrent)
-      // setActive({activePiece: null})
+      if (refCurrent == active.activePiece) {
+        new TWEEN.Tween(refCurrent.position)
+        .to(
+          {
+            y: refCurrent.position.y-1,
+          },
+          400
+        )
+        .start()
+        setActive({...active, activePiece: null})
+      } else {
+        tileOnClick(e, refCurrent)
+      }
     }
     
     // refCurrent.position.z += 0.89957142857
@@ -58,10 +69,12 @@ export function Chessboard(props) {
   const tileOnClick = (e, refCurrent) => {
     e.stopPropagation()
     if (!active.activePiece) return
-    if(refCurrent == active.activePiece) {
-      setActive({activePiece: null})
-      return
-    }
+    const pieceColor = active.activePiece.name[0]
+    if (active.whiteTurn && pieceColor != 'w' || !active.whiteTurn && pieceColor != 'b') {
+      // alert("Incorrect move")
+      console.log("Different player should have moved ")
+    } 
+
     // reading centerr coordinates of clicked plane
     // let vec = new Vector2();
     // vec.x = (refCurrent.geometry.boundingBox.max.x + refCurrent.geometry.boundingBox.min.x) / 2;
@@ -80,7 +93,7 @@ export function Chessboard(props) {
     new TWEEN.Tween(active.activePiece.position)
       .to(
         {
-          y: active.activePiece.position.y+1.5
+          y: active.activePiece.position.y+0.7
         },
         250
       )
@@ -90,16 +103,18 @@ export function Chessboard(props) {
           new TWEEN.Tween(active.activePiece.position)
             .to(
               {
-                y: active.activePiece.position.y -1.5
+                y: active.activePiece.position.y-1.7
               },
               250
             )
-            .easing(TWEEN.Easing.Bounce.Out)
+            .easing(TWEEN.Easing.Bounce.InOut)
             .start()
-            .onComplete(()=>setActive({activePiece: null}))
+            .onComplete(()=>{
+              playMoveAudio(true)
+              setActive(prev => ({...prev, activePiece: null, whiteTurn: !prev.whiteTurn}))
+            })
         }
       )
-      playMoveAudio(true)
   }
   
 
@@ -112,9 +127,12 @@ export function Chessboard(props) {
 
 
   return (
+    <>
+    {/* <GameInfo whiteTurn={active.whiteTurn}/> */}
     <group ref={group} {...props}  dispose={null} castShadow>
       <group name="Scene" scale={[0.2,0.2,0.2]} >
         {/* <Table receiveShadow={true} castShadow={true}/> */}
+
         <group>
           <group name="main" position={[0.439, -0.483, 0.051]} scale={[11.994, 11.595, 11.994]} >
             <mesh name="Plane_1" geometry={nodes.Plane_1.geometry} material={materials.blacksquare} receiveShadow={true}/>
@@ -266,14 +284,15 @@ export function Chessboard(props) {
       </group>
       
       </group>
-
-      // loaded but not used models
-      // <mesh name="pawn001" geometry={nodes.pawn001.geometry} material={materials.black_hover} position={[-8.104, -0.162, 0]} scale={0.22} />
-      // <mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} /><mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} />
-      // <mesh name="pawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
-      // <mesh name="black_pawn" geometry={nodes.black_pawn.geometry} material={materials.black_marble} position={[3.587, -0.133, -2.188]} scale={0.22} />
-        // ref={planesRef["A1"]}
+      </>
         )
 }
+
+// loaded but not used models
+// <mesh name="pawn001" geometry={nodes.pawn001.geometry} material={materials.black_hover} position={[-8.104, -0.162, 0]} scale={0.22} />
+// <mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} /><mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} />
+// <mesh name="pawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
+// <mesh name="black_pawn" geometry={nodes.black_pawn.geometry} material={materials.black_marble} position={[3.587, -0.133, -2.188]} scale={0.22} />
+//   ref={planesRef["A1"]}
 
 useGLTF.preload('/assets/chessboard.glb')

@@ -10,13 +10,14 @@ import { useEffect, useRef, useState } from 'react'
 function App() {
   const [running, setRunning] = useState(false)
   const [restart, setRestart] = useState(0)
-  const controlsRef = useRef()
+
+  const canvasRef = useRef()
   // useEffect(()=> {
-  //   setRunning(false)
-  // }, [restart])
+    
+  // }, [spinned])
   return (
     <>
-    <Canvas ref={controlsRef} camera={{near: 0.00001, position: [1, 0.8, 1.2], }}>
+    <Canvas ref={canvasRef} camera={{near: 0.00001, position: [1, 0.8, 1.2],}}>
       <OrbitControls autoRotate={!running} autoRotateSpeed={1.8} dampingFactor={0.15}/>
       {/* <Lights/> */}
       <Chessboard key={restart} position={[-0.087797,-0.1,-0.009988]} onPointerMissed={()=>{console.log("missed")}}/>
@@ -31,7 +32,7 @@ function App() {
           className='btn--start'
           onClick={(e) => {
             setRunning(true)
-            // e.target.style.display = "none"
+            // console.log(canvasRef)
           }}
           >Start the game</span>
           <div className='background'></div>
@@ -41,7 +42,6 @@ function App() {
           className='btn--restart'
           onClick={()=>{
             setRestart(prev => prev+1)
-            console.log(controlsRef)
           }}
         >Restart</span>
       }
