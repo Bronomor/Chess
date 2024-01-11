@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRef, useState } from 'react'
 import {  useFrame, useThree } from '@react-three/fiber'
 
@@ -11,7 +11,10 @@ export function King({pref, material, hoverMaterial, ...props}) {
   const [hovered, setHover] = useState(false)
   const [active, setActive] = useState(0)
   // useFrame(() => (pref.current.rotation.z = pref.current.rotation.x += 0.01))
-  
+  useEffect(() => {
+    document.body.style.cursor = hovered ? 'pointer' : 'auto'
+    return ()=> document.body.style.cursor = 'auto';
+  }, [hovered])
   
   return (
       <mesh 

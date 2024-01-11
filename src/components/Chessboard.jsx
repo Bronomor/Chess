@@ -11,6 +11,7 @@ import { Vector2, Vector3 } from 'three'
 import { Table } from './Table'
 import { Pawn, Knight, Bishop, Rook, Queen, King }  from './Pieces'
 import { useFrame } from '@react-three/fiber'
+import { useAudio } from '../hooks/useAudio'
 
 export function Chessboard(props) {
   const group = useRef()
@@ -22,6 +23,9 @@ export function Chessboard(props) {
   })
   const { nodes, materials, animations } = useGLTF('/assets/chessboard.glb')
   const { actions } = useAnimations(animations, group)
+
+  const [moveAudioPlaying, playMoveAudio] = useAudio('../../public/move-self.mp3');
+  const [captureAudioPlaying, playCaptureAudio] = useAudio('../../public/capture.mp3');
 
   useFrame(()=>{
     TWEEN.update()
@@ -44,7 +48,8 @@ export function Chessboard(props) {
       setActive({activePiece: refCurrent})
     } else {
       // active.activePiece.position.y -= 1.4
-      setActive({activePiece: null})
+      tileOnClick(e, refCurrent)
+      // setActive({activePiece: null})
     }
     
     // refCurrent.position.z += 0.89957142857
@@ -53,7 +58,10 @@ export function Chessboard(props) {
   const tileOnClick = (e, refCurrent) => {
     e.stopPropagation()
     if (!active.activePiece) return
-    
+    if(refCurrent == active.activePiece) {
+      setActive({activePiece: null})
+      return
+    }
     // reading centerr coordinates of clicked plane
     // let vec = new Vector2();
     // vec.x = (refCurrent.geometry.boundingBox.max.x + refCurrent.geometry.boundingBox.min.x) / 2;
@@ -88,20 +96,19 @@ export function Chessboard(props) {
             )
             .easing(TWEEN.Easing.Bounce.Out)
             .start()
-            .onComplete(()=>activatePiece(e, active))
+            .onComplete(()=>setActive({activePiece: null}))
         }
       )
-    
+      playMoveAudio(true)
   }
   
-  window.addEventListener('click', e => {
-    // console.log(materials)
-  })
 
   // useEffect(()=>{
-
+  //   if (active.activePiece != null){
+  //     active.activePiece.material = materials.black_hover
+  //   }
   // }
-  // , [])
+  // , [active])
 
 
   return (
