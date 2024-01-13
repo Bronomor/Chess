@@ -14,6 +14,146 @@ import { useFrame } from '@react-three/fiber'
 import { useAudio } from '../hooks/useAudio'
 import GameInfo from './gameInfo'
 
+// board
+
+// 0 <- empty field
+// 1 <- white pawn
+// 3 <- white bishop
+// 4 <- white knight
+// 5 <- white rock
+// 8 <- white queen
+// 9 <- white king
+// -1 <- black pawn
+// -3 <- black bishop
+// -4 <- blackknight
+// -5 <- black rock
+// -8 <- black queen
+// -9 <- black king
+
+const board = [
+	[ 5, 4, 3, 9, 8, 3, 4, 5 ],
+	[ 1, 1, 1, 1, 1, 1, 1, 1 ],
+	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
+	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
+	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
+	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
+	[-1,-1,-1,-1,-1,-1,-1,-1 ], //black
+	[-5,-4,-3,-9,-8,-3,-4,-5 ]  // black
+]
+
+var translateDictionary = {
+  A: "0",
+  B: "1",
+  C: "2",
+  D: "3",
+  E: "4",
+  F: "5",
+  G: "6",
+  H: "7"
+};
+
+// traslate to board represesntation
+function translate_location_to_board(from, to)
+{
+  // from 0, from 1 ; to 0 , to 1 indexes
+  return [ parseInt(from[1])-1, parseInt(translateDictionary[from[0]]), parseInt(to[1])-1, parseInt(translateDictionary[to[0]]) ];
+}
+
+function check_chess_logic( idx )
+{
+  const FigureType = board[idx[0]][idx[1]];
+
+  console.log(FigureType)
+  console.log(idx)
+  if ( FigureType == 1 ) // white pawns
+  {
+    if( idx[1] == idx[3] && idx[2] - idx[0] == 1 && board[idx[2]][idx[3]] == 0) // check 1 forward 
+    {
+      board[idx[2]][idx[3]] = 1;
+      board[idx[0]][idx[1]] = 0;
+      return 1;
+    }
+    else if ( idx[1] == idx[3] && idx[2] - idx[0] == 2 && board[idx[2]][idx[3]] == 0 && idx[0] == 1 ) // check 2 forward 
+    {
+      board[idx[2]][idx[3]] = 1;
+      board[idx[0]][idx[1]] = 0;
+      return 1;
+    }
+    else if( idx[1] == idx[3] && idx[2] == 7 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
+    {
+      board[idx[2]][idx[3]] = 8;
+      board[idx[0]][idx[1]] = 0;
+      return 1; // to do promotion, remove pawn and add quen
+    }
+    else if ( (idx[1] == idx[3]-1 || idx[1] == idx[3]+1) && idx[2] - idx[0] == 1 ) // left or right attact
+    {
+      if ( board[idx[2]][idx[3]] == -1 || board[idx[2]][idx[3]] == -3 || board[idx[2]][idx[3]] == -4 || board[idx[2]][idx[3]] == -5 || board[idx[2]][idx[3]] == -8 )
+      {
+        board[idx[2]][idx[3]] = 1;
+        board[idx[0]][idx[1]] = 0;
+        return 1; // remove other pawn
+      }
+    }
+    // bicie w przelocie
+
+    return 0;
+  }
+  else if ( FigureType == -1 ) // black pawn
+  {
+    if( idx[1] == idx[3] && idx[0] - idx[2] == 1 && board[idx[2]][idx[3]] == 0) // check 1 forward 
+    {
+      board[idx[2]][idx[3]] = -1;
+      board[idx[0]][idx[1]] = 0;
+      return 1;
+    }
+    else if ( idx[1] == idx[3] && idx[0] - idx[2] == 2 && board[idx[2]][idx[3]] == 0 && idx[0] == 6 ) // check 2 forward 
+    {
+      board[idx[2]][idx[3]] = -1;
+      board[idx[0]][idx[1]] = 0;
+      return 1;
+    }
+    else if( idx[1] == idx[3] && idx[2] == 0 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
+    {
+      board[idx[2]][idx[3]] = -8;
+      board[idx[0]][idx[1]] = 0;
+      return 1; // to do promotion, remove pawn and add quen
+    }
+    else if ( (idx[1] == idx[3]-1 || idx[1] == idx[3]+1) && idx[0] - idx[2] == 1 ) // left or right attact
+    {
+      if ( board[idx[2]][idx[3]] == 1 || board[idx[2]][idx[3]] == 3 || board[idx[2]][idx[3]] == 4 || board[idx[2]][idx[3]] == 5 || board[idx[2]][idx[3]] == 8 )
+      {
+        board[idx[2]][idx[3]] = -1;
+        board[idx[0]][idx[1]] = 0;
+        return 1; // remove other pawn
+      }
+    }
+    // bicie w przelocie
+  }
+  else if ( FigureType == 3 || FigureType == -3) // bishops
+  {
+
+  }
+  else if ( FigureType == 4 || FigureType == -4) // knights
+  {
+    
+  }
+  else if ( FigureType == 5 || FigureType == -5) // rocks
+  {
+    
+  }
+  else if ( FigureType == 8 || FigureType == -8) // queen
+  {
+    
+  }
+  else ( FigureType == 8 || FigureType == -8) // king
+  {
+    
+  }
+
+  return 0; // incorrect move
+}
+
+
 export function Chessboard(props) {
   const group = useRef()
   const piecesRef = useRef({});
@@ -66,19 +206,53 @@ export function Chessboard(props) {
     // refCurrent.position.z += 0.89957142857
   }
 
-  const tileOnClick = (e, refCurrent) => {
-    e.stopPropagation()
-    if (!active.activePiece) return
+  function reset_figure(){
+    // reset piece
+    new TWEEN.Tween(active.activePiece.position)
+    .to(
+      {
+        y: active.activePiece.position.y-1,
+      },
+      400
+    )
+    .start()
+    setActive({...active, activePiece: null})
+  }
+
+  const validate_move = (oldPlace, newPlace) => {
+
+    // check turn
     const pieceColor = active.activePiece.name[0]
     if (active.whiteTurn && pieceColor != 'w' || !active.whiteTurn && pieceColor != 'b') {
-      // alert("Incorrect move")
-      console.log("Different player should have moved ")
+
+      // reset figure and throw alert
+      reset_figure()
+      alert("Different player should have moved ")
+      return 0;
     } 
 
+    let idexes = translate_location_to_board(oldPlace.field, newPlace.field);
+    if ( !check_chess_logic(idexes) )
+    {
+      alert("Incorrect Move");
+      return 0;
+    }
+
+    return 1;
+  }
+
+  const tileOnClick = (e, refCurrent) => {
+    e.stopPropagation()
+    
+    if (!active.activePiece) return
+
+    if (!validate_move(active.activePiece, refCurrent)) return;
     // reading centerr coordinates of clicked plane
     // let vec = new Vector2();
     // vec.x = (refCurrent.geometry.boundingBox.max.x + refCurrent.geometry.boundingBox.min.x) / 2;
     // vec.y = (refCurrent.geometry.boundingBox.max.y + refCurrent.geometry.boundingBox.min.y) / 2; // this is the z axis value
+
+    active.activePiece.field = refCurrent.field;
 
     new TWEEN.Tween(active.activePiece.position)
       .to(
@@ -175,109 +349,109 @@ export function Chessboard(props) {
           <mesh name="letter_8001" geometry={nodes.letter_8001.geometry} material={materials['Material.002']} position={[4.331, -0.238, -3.098]} rotation={[Math.PI, 0, Math.PI]} scale={11.994} />
         </group>
         <group name='planes'>
-          <mesh ref={(ref) => planesRef.current["A1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A1"])} name="Plane" geometry={nodes.Plane.geometry} material={materials.transparent} position={[-2.739, -0.129, 3.214]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H1"])} name="Plane001" geometry={nodes.Plane001.geometry} material={materials.transparent} position={[3.623, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A8"])} name="Plane002" geometry={nodes.Plane002.geometry} material={materials.transparent} position={[-2.714, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H8"])} name="Plane003" geometry={nodes.Plane003.geometry} material={materials.transparent} position={[3.623, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A7"])} name="Plane004" geometry={nodes.Plane004.geometry} material={materials.transparent} position={[-2.714, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A6"])} name="Plane005" geometry={nodes.Plane005.geometry} material={materials.transparent} position={[-2.714, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A5"])} name="Plane006" geometry={nodes.Plane006.geometry} material={materials.transparent} position={[-2.714, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A4"])} name="Plane007" geometry={nodes.Plane007.geometry} material={materials.transparent} position={[-2.714, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A3"])} name="Plane008" geometry={nodes.Plane008.geometry} material={materials.transparent} position={[-2.714, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["A2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A2"])} name="Plane009" geometry={nodes.Plane009.geometry} material={materials.transparent} position={[-2.714, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B1"])} name="Plane010" geometry={nodes.Plane010.geometry} material={materials.transparent} position={[-1.809, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C1"])} name="Plane011" geometry={nodes.Plane011.geometry} material={materials.transparent} position={[-0.904, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D1"])} name="Plane012" geometry={nodes.Plane012.geometry} material={materials.transparent} position={[0.002, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E1"])} name="Plane013" geometry={nodes.Plane013.geometry} material={materials.transparent} position={[0.907, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F1"])} name="Plane014" geometry={nodes.Plane014.geometry} material={materials.transparent} position={[1.813, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G1"])} name="Plane015" geometry={nodes.Plane015.geometry} material={materials.transparent} position={[2.718, -0.129, 3.226]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H2"])} name="Plane016" geometry={nodes.Plane016.geometry} material={materials.transparent} position={[3.623, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H2"])} name="Plane017" geometry={nodes.Plane017.geometry} material={materials.transparent} position={[3.623, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H4"])} name="Plane018" geometry={nodes.Plane018.geometry} material={materials.transparent} position={[3.623, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H5"])} name="Plane019" geometry={nodes.Plane019.geometry} material={materials.transparent} position={[3.623, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H6"])} name="Plane020" geometry={nodes.Plane020.geometry} material={materials.transparent} position={[3.623, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["H7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H7"])} name="Plane021" geometry={nodes.Plane021.geometry} material={materials.transparent} position={[3.623, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G8"])} name="Plane022" geometry={nodes.Plane022.geometry} material={materials.transparent} position={[2.718, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F8"])} name="Plane023" geometry={nodes.Plane023.geometry} material={materials.transparent} position={[1.813, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E8"])} name="Plane024" geometry={nodes.Plane024.geometry} material={materials.transparent} position={[0.907, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D8"])} name="Plane025" geometry={nodes.Plane025.geometry} material={materials.transparent} position={[0.002, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C8"])} name="Plane026" geometry={nodes.Plane026.geometry} material={materials.transparent} position={[-0.904, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B8"])} name="Plane027" geometry={nodes.Plane027.geometry} material={materials.transparent} position={[-1.809, -0.129, -3.112]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B2"])} name="Plane028" geometry={nodes.Plane028.geometry} material={materials.transparent} position={[-1.809, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B3"])} name="Plane029" geometry={nodes.Plane029.geometry} material={materials.transparent} position={[-1.809, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B4"])} name="Plane030" geometry={nodes.Plane030.geometry} material={materials.transparent} position={[-1.809, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B5"])} name="Plane031" geometry={nodes.Plane031.geometry} material={materials.transparent} position={[-1.809, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B6"])} name="Plane032" geometry={nodes.Plane032.geometry} material={materials.transparent} position={[-1.809, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["B7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B7"])} name="Plane033" geometry={nodes.Plane033.geometry} material={materials.transparent} position={[-1.809, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C2"])} name="Plane034" geometry={nodes.Plane034.geometry} material={materials.transparent} position={[-0.904, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C3"])} name="Plane035" geometry={nodes.Plane035.geometry} material={materials.transparent} position={[-0.904, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C4"])} name="Plane036" geometry={nodes.Plane036.geometry} material={materials.transparent} position={[-0.904, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C5"])} name="Plane037" geometry={nodes.Plane037.geometry} material={materials.transparent} position={[-0.904, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C6"])} name="Plane038" geometry={nodes.Plane038.geometry} material={materials.transparent} position={[-0.904, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["C7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C7"])} name="Plane039" geometry={nodes.Plane039.geometry} material={materials.transparent} position={[-0.904, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D2"])} name="Plane040" geometry={nodes.Plane040.geometry} material={materials.transparent} position={[0.002, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D3"])} name="Plane041" geometry={nodes.Plane041.geometry} material={materials.transparent} position={[0.002, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D4"])} name="Plane042" geometry={nodes.Plane042.geometry} material={materials.transparent} position={[0.002, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D5"])} name="Plane043" geometry={nodes.Plane043.geometry} material={materials.transparent} position={[0.002, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D6"])} name="Plane044" geometry={nodes.Plane044.geometry} material={materials.transparent} position={[0.002, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["D7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D7"])} name="Plane045" geometry={nodes.Plane045.geometry} material={materials.transparent} position={[0.002, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E2"])} name="Plane046" geometry={nodes.Plane046.geometry} material={materials.transparent} position={[0.907, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E3"])} name="Plane047" geometry={nodes.Plane047.geometry} material={materials.transparent} position={[0.907, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E4"])} name="Plane048" geometry={nodes.Plane048.geometry} material={materials.transparent} position={[0.907, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E5"])} name="Plane049" geometry={nodes.Plane049.geometry} material={materials.transparent} position={[0.907, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E6"])} name="Plane050" geometry={nodes.Plane050.geometry} material={materials.transparent} position={[0.907, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["E7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E7"])} name="Plane051" geometry={nodes.Plane051.geometry} material={materials.transparent} position={[0.907, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F2"])} name="Plane052" geometry={nodes.Plane052.geometry} material={materials.transparent} position={[1.813, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F3"])} name="Plane053" geometry={nodes.Plane053.geometry} material={materials.transparent} position={[1.813, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F4"])} name="Plane054" geometry={nodes.Plane054.geometry} material={materials.transparent} position={[1.813, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F5"])} name="Plane055" geometry={nodes.Plane055.geometry} material={materials.transparent} position={[1.813, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F6"])} name="Plane056" geometry={nodes.Plane056.geometry} material={materials.transparent} position={[1.813, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["F7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F7"])} name="Plane057" geometry={nodes.Plane057.geometry} material={materials.transparent} position={[1.813, -0.129, -2.207]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G2"])} name="Plane058" geometry={nodes.Plane058.geometry} material={materials.transparent} position={[2.718, -0.129, 2.32]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G3"])} name="Plane059" geometry={nodes.Plane059.geometry} material={materials.transparent} position={[2.718, -0.129, 1.415]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G4"])} name="Plane060" geometry={nodes.Plane060.geometry} material={materials.transparent} position={[2.718, -0.129, 0.509]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G5"])} name="Plane061" geometry={nodes.Plane061.geometry} material={materials.transparent} position={[2.718, -0.129, -0.396]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G6"])} name="Plane062" geometry={nodes.Plane062.geometry} material={materials.transparent} position={[2.718, -0.129, -1.302]} scale={3.622} />
-          <mesh ref={(ref) => planesRef.current["G7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G7"])} name="Plane063" geometry={nodes.Plane063.geometry} material={materials.transparent} position={[2.718, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A1"])} field="A1" name="Plane" geometry={nodes.Plane.geometry} material={materials.transparent} position={[-2.739, -0.129, 3.214]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H1"])} field="H1" name="Plane001" geometry={nodes.Plane001.geometry} material={materials.transparent} position={[3.623, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A8"])} field="A8" name="Plane002" geometry={nodes.Plane002.geometry} material={materials.transparent} position={[-2.714, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H8"])} field="H8" name="Plane003" geometry={nodes.Plane003.geometry} material={materials.transparent} position={[3.623, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A7"])} field="A7" name="Plane004" geometry={nodes.Plane004.geometry} material={materials.transparent} position={[-2.714, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A6"])} field="A6" name="Plane005" geometry={nodes.Plane005.geometry} material={materials.transparent} position={[-2.714, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A5"])} field="A5" name="Plane006" geometry={nodes.Plane006.geometry} material={materials.transparent} position={[-2.714, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A4"])} field="A4" name="Plane007" geometry={nodes.Plane007.geometry} material={materials.transparent} position={[-2.714, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A3"])} field="A3" name="Plane008" geometry={nodes.Plane008.geometry} material={materials.transparent} position={[-2.714, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["A2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["A2"])} field="A2" name="Plane009" geometry={nodes.Plane009.geometry} material={materials.transparent} position={[-2.714, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B1"])} field="B1" name="Plane010" geometry={nodes.Plane010.geometry} material={materials.transparent} position={[-1.809, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C1"])} field="C1" name="Plane011" geometry={nodes.Plane011.geometry} material={materials.transparent} position={[-0.904, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D1"])} field="D1" name="Plane012" geometry={nodes.Plane012.geometry} material={materials.transparent} position={[0.002, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E1"])} field="E1" name="Plane013" geometry={nodes.Plane013.geometry} material={materials.transparent} position={[0.907, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F1"])} field="F1" name="Plane014" geometry={nodes.Plane014.geometry} material={materials.transparent} position={[1.813, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G1"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G1"])} field="G1" name="Plane015" geometry={nodes.Plane015.geometry} material={materials.transparent} position={[2.718, -0.129, 3.226]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H2"])} field="H2" name="Plane016" geometry={nodes.Plane016.geometry} material={materials.transparent} position={[3.623, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H3"])} field="H3" name="Plane017" geometry={nodes.Plane017.geometry} material={materials.transparent} position={[3.623, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H4"])} field="H4" name="Plane018" geometry={nodes.Plane018.geometry} material={materials.transparent} position={[3.623, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H5"])} field="H5" name="Plane019" geometry={nodes.Plane019.geometry} material={materials.transparent} position={[3.623, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H6"])} field="H6" name="Plane020" geometry={nodes.Plane020.geometry} material={materials.transparent} position={[3.623, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["H7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["H7"])} field="H7" name="Plane021" geometry={nodes.Plane021.geometry} material={materials.transparent} position={[3.623, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G8"])} field="G8" name="Plane022" geometry={nodes.Plane022.geometry} material={materials.transparent} position={[2.718, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F8"])} field="F8" name="Plane023" geometry={nodes.Plane023.geometry} material={materials.transparent} position={[1.813, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E8"])} field="E8" name="Plane024" geometry={nodes.Plane024.geometry} material={materials.transparent} position={[0.907, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D8"])} field="D8" name="Plane025" geometry={nodes.Plane025.geometry} material={materials.transparent} position={[0.002, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C8"])} field="C8" name="Plane026" geometry={nodes.Plane026.geometry} material={materials.transparent} position={[-0.904, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B8"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B8"])} field="B8" name="Plane027" geometry={nodes.Plane027.geometry} material={materials.transparent} position={[-1.809, -0.129, -3.112]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B2"])} field="B2" name="Plane028" geometry={nodes.Plane028.geometry} material={materials.transparent} position={[-1.809, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B3"])} field="B3" name="Plane029" geometry={nodes.Plane029.geometry} material={materials.transparent} position={[-1.809, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B4"])} field="B4" name="Plane030" geometry={nodes.Plane030.geometry} material={materials.transparent} position={[-1.809, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B5"])} field="B5" name="Plane031" geometry={nodes.Plane031.geometry} material={materials.transparent} position={[-1.809, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B6"])} field="B6" name="Plane032" geometry={nodes.Plane032.geometry} material={materials.transparent} position={[-1.809, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["B7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["B7"])} field="B7" name="Plane033" geometry={nodes.Plane033.geometry} material={materials.transparent} position={[-1.809, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C2"])} field="C2" name="Plane034" geometry={nodes.Plane034.geometry} material={materials.transparent} position={[-0.904, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C3"])} field="C3" name="Plane035" geometry={nodes.Plane035.geometry} material={materials.transparent} position={[-0.904, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C4"])} field="C4" name="Plane036" geometry={nodes.Plane036.geometry} material={materials.transparent} position={[-0.904, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C5"])} field="C5" name="Plane037" geometry={nodes.Plane037.geometry} material={materials.transparent} position={[-0.904, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C6"])} field="C6" name="Plane038" geometry={nodes.Plane038.geometry} material={materials.transparent} position={[-0.904, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["C7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["C7"])} field="C7" name="Plane039" geometry={nodes.Plane039.geometry} material={materials.transparent} position={[-0.904, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D2"])} field="D2" name="Plane040" geometry={nodes.Plane040.geometry} material={materials.transparent} position={[0.002, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D3"])} field="D3" name="Plane041" geometry={nodes.Plane041.geometry} material={materials.transparent} position={[0.002, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D4"])} field="D4" name="Plane042" geometry={nodes.Plane042.geometry} material={materials.transparent} position={[0.002, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D5"])} field="D5" name="Plane043" geometry={nodes.Plane043.geometry} material={materials.transparent} position={[0.002, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D6"])} field="D6" name="Plane044" geometry={nodes.Plane044.geometry} material={materials.transparent} position={[0.002, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["D7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["D7"])} field="D7" name="Plane045" geometry={nodes.Plane045.geometry} material={materials.transparent} position={[0.002, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E2"])} field="E2" name="Plane046" geometry={nodes.Plane046.geometry} material={materials.transparent} position={[0.907, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E3"])} field="E3" name="Plane047" geometry={nodes.Plane047.geometry} material={materials.transparent} position={[0.907, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E4"])} field="E4" name="Plane048" geometry={nodes.Plane048.geometry} material={materials.transparent} position={[0.907, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E5"])} field="E5" name="Plane049" geometry={nodes.Plane049.geometry} material={materials.transparent} position={[0.907, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E6"])} field="E6" name="Plane050" geometry={nodes.Plane050.geometry} material={materials.transparent} position={[0.907, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["E7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["E7"])} field="E7" name="Plane051" geometry={nodes.Plane051.geometry} material={materials.transparent} position={[0.907, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F2"])} field="F2" name="Plane052" geometry={nodes.Plane052.geometry} material={materials.transparent} position={[1.813, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F3"])} field="F3" name="Plane053" geometry={nodes.Plane053.geometry} material={materials.transparent} position={[1.813, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F4"])} field="F4" name="Plane054" geometry={nodes.Plane054.geometry} material={materials.transparent} position={[1.813, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F5"])} field="F5" name="Plane055" geometry={nodes.Plane055.geometry} material={materials.transparent} position={[1.813, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F6"])} field="F6" name="Plane056" geometry={nodes.Plane056.geometry} material={materials.transparent} position={[1.813, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["F7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["F7"])} field="F7" name="Plane057" geometry={nodes.Plane057.geometry} material={materials.transparent} position={[1.813, -0.129, -2.207]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G2"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G2"])} field="G2" name="Plane058" geometry={nodes.Plane058.geometry} material={materials.transparent} position={[2.718, -0.129, 2.32]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G3"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G3"])} field="G3" name="Plane059" geometry={nodes.Plane059.geometry} material={materials.transparent} position={[2.718, -0.129, 1.415]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G4"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G4"])} field="G4" name="Plane060" geometry={nodes.Plane060.geometry} material={materials.transparent} position={[2.718, -0.129, 0.509]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G5"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G5"])} field="G5" name="Plane061" geometry={nodes.Plane061.geometry} material={materials.transparent} position={[2.718, -0.129, -0.396]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G6"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G6"])} field="G6" name="Plane062" geometry={nodes.Plane062.geometry} material={materials.transparent} position={[2.718, -0.129, -1.302]} scale={3.622} />
+          <mesh ref={(ref) => planesRef.current["G7"] = ref} onClick={(e) => tileOnClick(e, planesRef.current["G7"])} field="G7" name="Plane063" geometry={nodes.Plane063.geometry} material={materials.transparent} position={[2.718, -0.129, -2.207]} scale={3.622} />
         </group>
         <group name='blackPieces'>
-          <Pawn pref={(ref) => piecesRef.current["bAPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bAPawn"])} name="bAPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bBPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bBPawn"])} name="bBPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-1.81042857143, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bCPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bCPawn"])} name="bCPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-0.9108571428599999, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bDPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bDPawn"])} name="bDPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-0.011285714289999804, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bEPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bEPawn"])} name="bEPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[0.8882857142800002, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bFPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bFPawn"])} name="bFPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[1.7878571428500003, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bGPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bGPawn"])} name="bGPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[2.6874285714200004, -0.133, -2.198]} scale={0.22} />
-          <Pawn pref={(ref) => piecesRef.current["bHPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bHPawn"])} name="bHPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[3.5869999999900006, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bAPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bAPawn"])} field="A7" name="bAPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bBPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bBPawn"])} field="B7" name="bBPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-1.81042857143, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bCPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bCPawn"])} field="C7" name="bCPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-0.9108571428599999, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bDPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bDPawn"])} field="D7" name="bDPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-0.011285714289999804, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bEPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bEPawn"])} field="E7" name="bEPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[0.8882857142800002, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bFPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bFPawn"])} field="F7" name="bFPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[1.7878571428500003, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bGPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bGPawn"])} field="G7" name="bGPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[2.6874285714200004, -0.133, -2.198]} scale={0.22} />
+          <Pawn pref={(ref) => piecesRef.current["bHPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["bHPawn"])} field="H7" name="bHPawn" geometry={nodes.pawn.geometry} material={materials.black} position={[3.5869999999900006, -0.133, -2.198]} scale={0.22} />
           
-          <Bishop pref={(ref) => piecesRef.current["bCBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bCBishop"])} hoverMaterial={materials.black_hover} name="bCBishop" geometry={nodes.bishop.geometry} material={materials.black} position={[-0.911, -0.133, -3.098]} scale={0.175} />
-          <Bishop pref={(ref) => piecesRef.current["bFBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bFBishop"])} hoverMaterial={materials.black_hover} name="bFBishop" geometry={nodes.bishop.geometry} material={materials.black} position={[1.7878571428500003, -0.133, -3.098]} scale={0.175} />
-          <Knight pref={(ref) => piecesRef.current["bBKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bBKnight"])} hoverMaterial={materials.black_hover} name="bBKnight" geometry={nodes.knight.geometry} material={materials.black} position={[-1.752, -0.133, -3.098]} scale={0.276} />
-          <Knight pref={(ref) => piecesRef.current["bGKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bGKnight"])} hoverMaterial={materials.black_hover} name="bGKnight" geometry={nodes.knight.geometry} material={materials.black} position={[2.6874285714200004, -0.133, -3.098]} scale={0.276} />
-          <Rook pref={(ref) => piecesRef.current["bARook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bARook"])} hoverMaterial={materials.black_hover} name="bARook"  geometry={nodes.rook.geometry} material={materials.black} position={[-2.71, -0.133, -3.098]} scale={0.16} />
-          <Rook pref={(ref) => piecesRef.current["bHRook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bHRook"])} hoverMaterial={materials.black_hover} name="bHRook" geometry={nodes.rook.geometry} material={materials.black} position={[3.5869999999900006, -0.133, -3.098]} scale={0.16} />
-          <King pref={(ref) => piecesRef.current["bKing"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bKing"])} hoverMaterial={materials.black_hover} name="bKing" geometry={nodes.king.geometry} material={materials.black} position={[0.889, -0.133, -3.098]} scale={0.059} />
-          <Queen pref={(ref) => piecesRef.current["bQueen"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bQueen"])} hoverMaterial={materials.black_hover} name="bQueen" geometry={nodes.queen.geometry} material={materials.black} position={[-0.011, -0.133, -3.098]} scale={0.151} />
+          <Bishop pref={(ref) => piecesRef.current["bCBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bCBishop"])} hoverMaterial={materials.black_hover} field="C8" name="bCBishop" geometry={nodes.bishop.geometry} material={materials.black} position={[-0.911, -0.133, -3.098]} scale={0.175} />
+          <Bishop pref={(ref) => piecesRef.current["bFBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bFBishop"])} hoverMaterial={materials.black_hover} field="F8" name="bFBishop" geometry={nodes.bishop.geometry} material={materials.black} position={[1.7878571428500003, -0.133, -3.098]} scale={0.175} />
+          <Knight pref={(ref) => piecesRef.current["bBKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bBKnight"])} hoverMaterial={materials.black_hover} field="B8" name="bBKnight" geometry={nodes.knight.geometry} material={materials.black} position={[-1.752, -0.133, -3.098]} scale={0.276} />
+          <Knight pref={(ref) => piecesRef.current["bGKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bGKnight"])} hoverMaterial={materials.black_hover} field="G8" name="bGKnight" geometry={nodes.knight.geometry} material={materials.black} position={[2.6874285714200004, -0.133, -3.098]} scale={0.276} />
+          <Rook pref={(ref) => piecesRef.current["bARook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bARook"])} hoverMaterial={materials.black_hover} field="A8" name="bARook"  geometry={nodes.rook.geometry} material={materials.black} position={[-2.71, -0.133, -3.098]} scale={0.16} />
+          <Rook pref={(ref) => piecesRef.current["bHRook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bHRook"])} hoverMaterial={materials.black_hover} field="H8" name="bHRook" geometry={nodes.rook.geometry} material={materials.black} position={[3.5869999999900006, -0.133, -3.098]} scale={0.16} />
+          <King pref={(ref) => piecesRef.current["bKing"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bKing"])} hoverMaterial={materials.black_hover} field="E8" name="bKing" geometry={nodes.king.geometry} material={materials.black} position={[0.889, -0.133, -3.098]} scale={0.059} />
+          <Queen pref={(ref) => piecesRef.current["bQueen"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["bQueen"])} hoverMaterial={materials.black_hover} field="D8" name="bQueen" geometry={nodes.queen.geometry} material={materials.black} position={[-0.011, -0.133, -3.098]} scale={0.151} />
           {/* <mesh name="pawn001" geometry={nodes.pawn001.geometry} material={materials.black_hover} position={[-8.104, -0.162, 0]} scale={0.22} /> */}
           </group>
           <group name='whitePieces'>
-            <Pawn pref={(ref) => piecesRef.current["wAPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wAPawn"])} name="wAPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-2.71, -0.133, 2.299]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wBPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wBPawn"])} name="wBPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-1.809, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wCPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wCPawn"])} name="wCPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-0.904, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wDPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wDPawn"])} name="wDPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[0.002, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wEPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wEPawn"])} name="wEPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[0.907, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wFPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wFPawn"])} name="wFPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[1.813, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wGPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wGPawn"])} name="wGPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[2.718, -0.133, 2.2991]} scale={0.22} />
-            <Pawn pref={(ref) => piecesRef.current["wHPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wHPawn"])} name="wHPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[3.623, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wAPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wAPawn"])} field="A2" name="wAPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-2.71, -0.133, 2.299]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wBPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wBPawn"])} field="B2" name="wBPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-1.809, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wCPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wCPawn"])} field="C2" name="wCPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[-0.904, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wDPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wDPawn"])} field="D2" name="wDPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[0.002, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wEPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wEPawn"])} field="E2" name="wEPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[0.907, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wFPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wFPawn"])} field="F2" name="wFPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[1.813, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wGPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wGPawn"])} field="G2" name="wGPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[2.718, -0.133, 2.2991]} scale={0.22} />
+            <Pawn pref={(ref) => piecesRef.current["wHPawn"] = ref} hoverMaterial={materials.black_hover} onClick={(e) => activatePiece(e, piecesRef.current["wHPawn"])} field="H2" name="wHPawn" geometry={nodes.pawn.geometry} material={materials.whitesquare} position={[3.623, -0.133, 2.2991]} scale={0.22} />
             
-            <Bishop pref={(ref) => piecesRef.current["wCBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wCBishop"])} hoverMaterial={materials.black_hover} name="wCBishop" geometry={nodes.bishop.geometry} material={materials.whitesquare} position={[-0.904, -0.133, 3.199]} scale={0.175} rotation={[0,Math.PI,0]}/>
-            <Bishop pref={(ref) => piecesRef.current["wFBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wFBishop"])} hoverMaterial={materials.black_hover} name="wFBishop" geometry={nodes.bishop.geometry} material={materials.whitesquare} position={[1.813, -0.133, 3.199]} scale={0.175} rotation={[0,Math.PI,0]}/>
-            <Knight pref={(ref) => piecesRef.current["wBKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wBKnight"])} hoverMaterial={materials.black_hover} name="wBKnight" geometry={nodes.knight.geometry} material={materials.whitesquare} position={[-1.809, -0.133, 3.199]} scale={0.276} rotation={[0,Math.PI,0]}/>
-            <Knight pref={(ref) => piecesRef.current["wGKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wGKnight"])} hoverMaterial={materials.black_hover} name="wGKnight" geometry={nodes.knight.geometry} material={materials.whitesquare} position={[2.718, -0.133, 3.199]} scale={0.276} rotation={[0,Math.PI,0]}/>
-            <Rook pref={(ref) => piecesRef.current["wARook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wARook"])} hoverMaterial={materials.black_hover} name="wARook"  geometry={nodes.rook.geometry} material={materials.whitesquare} position={[-2.71, -0.133, 3.199]} scale={0.16} />
-            <Rook pref={(ref) => piecesRef.current["wHRook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wHRook"])} hoverMaterial={materials.black_hover} name="wHRook" geometry={nodes.rook.geometry} material={materials.whitesquare} position={[3.623, -0.133, 3.199]} scale={0.16} />
-            <King pref={(ref) => piecesRef.current["wKing"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wKing"])} hoverMaterial={materials.black_hover} name="wKing" geometry={nodes.king.geometry} material={materials.whitesquare} position={[0.907, -0.133, 3.199]} scale={0.059} rotation={[0,Math.PI,0]}/>
-            <Queen pref={(ref) => piecesRef.current["wQueen"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wQueen"])} hoverMaterial={materials.black_hover} name="wQueen" geometry={nodes.queen.geometry} material={materials.whitesquare} position={[0.002, -0.133, 3.199]} scale={0.151} />
+            <Bishop pref={(ref) => piecesRef.current["wCBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wCBishop"])} hoverMaterial={materials.black_hover} field="C1" name="wCBishop" geometry={nodes.bishop.geometry} material={materials.whitesquare} position={[-0.904, -0.133, 3.199]} scale={0.175} rotation={[0,Math.PI,0]}/>
+            <Bishop pref={(ref) => piecesRef.current["wFBishop"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wFBishop"])} hoverMaterial={materials.black_hover} field="F1" name="wFBishop" geometry={nodes.bishop.geometry} material={materials.whitesquare} position={[1.813, -0.133, 3.199]} scale={0.175} rotation={[0,Math.PI,0]}/>
+            <Knight pref={(ref) => piecesRef.current["wBKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wBKnight"])} hoverMaterial={materials.black_hover} field="B1" name="wBKnight" geometry={nodes.knight.geometry} material={materials.whitesquare} position={[-1.809, -0.133, 3.199]} scale={0.276} rotation={[0,Math.PI,0]}/>
+            <Knight pref={(ref) => piecesRef.current["wGKnight"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wGKnight"])} hoverMaterial={materials.black_hover} field="G1" name="wGKnight" geometry={nodes.knight.geometry} material={materials.whitesquare} position={[2.718, -0.133, 3.199]} scale={0.276} rotation={[0,Math.PI,0]}/>
+            <Rook pref={(ref) => piecesRef.current["wARook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wARook"])} hoverMaterial={materials.black_hover} field="A1" name="wARook"  geometry={nodes.rook.geometry} material={materials.whitesquare} position={[-2.71, -0.133, 3.199]} scale={0.16} />
+            <Rook pref={(ref) => piecesRef.current["wHRook"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wHRook"])} hoverMaterial={materials.black_hover} field="H1" name="wHRook" geometry={nodes.rook.geometry} material={materials.whitesquare} position={[3.623, -0.133, 3.199]} scale={0.16} />
+            <King pref={(ref) => piecesRef.current["wKing"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wKing"])} hoverMaterial={materials.black_hover} field="E1" name="wKing" geometry={nodes.king.geometry} material={materials.whitesquare} position={[0.907, -0.133, 3.199]} scale={0.059} rotation={[0,Math.PI,0]}/>
+            <Queen pref={(ref) => piecesRef.current["wQueen"] = ref} onClick={(e) => activatePiece(e, piecesRef.current["wQueen"])} hoverMaterial={materials.black_hover} field="D1" name="wQueen" geometry={nodes.queen.geometry} material={materials.whitesquare} position={[0.002, -0.133, 3.199]} scale={0.151} />
           </group>
         
         
