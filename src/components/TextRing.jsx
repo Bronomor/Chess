@@ -36,6 +36,7 @@ export default function TextRing({children}) {
   const texture2 = useRef()
   useFrame(({ clock }) => {
     texture.current.offset.x = clock.getElapsedTime() / 8
+    texture2.current.offset.x = clock.getElapsedTime() / 8
   })
 
   const cylArgs = [.32, .25, .25, 120, 1, true]

@@ -13,6 +13,7 @@ import { Pawn, Knight, Bishop, Rook, Queen, King }  from './Pieces'
 import { useFrame } from '@react-three/fiber'
 import { useAudio } from '../hooks/useAudio'
 import GameInfo from './gameInfo'
+import { randFloat, randInt } from 'three/src/math/MathUtils'
 
 // board
 
@@ -40,6 +41,7 @@ const board = [
 	[-1,-1,-1,-1,-1,-1,-1,-1 ], //black
 	[-5,-4,-3,-9,-8,-3,-4,-5 ]  // black
 ]
+let toDelete = [-1,-1]
 
 var translateDictionary = {
   A: "0",
@@ -52,6 +54,17 @@ var translateDictionary = {
   H: "7"
 };
 
+var reverseTranslateDictionary = {
+  0: "A",
+  1: "B",
+  2: "C",
+  3: "D",
+  4: "E",
+  5: "F",
+  6: "G",
+  7: "H"
+};
+
 // traslate to board represesntation
 function translate_location_to_board(from, to)
 {
@@ -59,12 +72,16 @@ function translate_location_to_board(from, to)
   return [ parseInt(from[1])-1, parseInt(translateDictionary[from[0]]), parseInt(to[1])-1, parseInt(translateDictionary[to[0]]) ];
 }
 
+function translate_board_to_location(field) {
+  return  reverseTranslateDictionary[field[1]] + (field[0]+1)
+}
+
 function check_chess_logic( idx )
 {
   const FigureType = board[idx[0]][idx[1]];
 
-  console.log(FigureType)
-  console.log(idx)
+  // console.log(FigureType)
+  // console.log(idx)
   if ( FigureType == 1 ) // white pawns
   {
     if( idx[1] == idx[3] && idx[2] - idx[0] == 1 && board[idx[2]][idx[3]] == 0) // check 1 forward 
@@ -89,6 +106,7 @@ function check_chess_logic( idx )
     {
       if ( board[idx[2]][idx[3]] == -1 || board[idx[2]][idx[3]] == -3 || board[idx[2]][idx[3]] == -4 || board[idx[2]][idx[3]] == -5 || board[idx[2]][idx[3]] == -8 )
       {
+        toDelete = [idx[2],idx[3]]
         board[idx[2]][idx[3]] = 1;
         board[idx[0]][idx[1]] = 0;
         return 1; // remove other pawn
@@ -122,6 +140,7 @@ function check_chess_logic( idx )
     {
       if ( board[idx[2]][idx[3]] == 1 || board[idx[2]][idx[3]] == 3 || board[idx[2]][idx[3]] == 4 || board[idx[2]][idx[3]] == 5 || board[idx[2]][idx[3]] == 8 )
       {
+        toDelete = [idx[2],idx[3]]
         board[idx[2]][idx[3]] = -1;
         board[idx[0]][idx[1]] = 0;
         return 1; // remove other pawn
@@ -153,11 +172,10 @@ function check_chess_logic( idx )
   return 0; // incorrect move
 }
 
-
 export function Chessboard(props) {
   const group = useRef()
-  const piecesRef = useRef({});
-  const planesRef = useRef({})
+  const piecesRef = useRef([]);
+  const planesRef = useRef([])
   
   const [active, setActive] = useState({
     activePiece: null,
@@ -189,15 +207,7 @@ export function Chessboard(props) {
       setActive({ ...active, activePiece: refCurrent})
     } else {
       if (refCurrent == active.activePiece) {
-        new TWEEN.Tween(refCurrent.position)
-        .to(
-          {
-            y: refCurrent.position.y-1,
-          },
-          400
-        )
-        .start()
-        setActive({...active, activePiece: null})
+        reset_figure()
       } else {
         tileOnClick(e, refCurrent)
       }
@@ -206,17 +216,48 @@ export function Chessboard(props) {
     // refCurrent.position.z += 0.89957142857
   }
 
-  function reset_figure(){
+  const reset_figure = () => {
     // reset piece
     new TWEEN.Tween(active.activePiece.position)
     .to(
       {
-        y: active.activePiece.position.y-1,
+        y: -0.133,
       },
       400
     )
     .start()
     setActive({...active, activePiece: null})
+  }
+
+  const rollOffPiece = (ref) => {
+    const offset = randFloat(5, 10)
+    const offsetVal = ref.name[0]=='w' ? offset : -offset
+    new TWEEN.Tween(ref.rotation)
+      .to({
+        x: Math.PI/2
+      }, 400 
+      )
+      .start()
+      .onComplete(() => {
+        new TWEEN.Tween(ref.rotation)
+          .to(
+            {
+              y: Math.PI * offsetVal
+            }, 1300
+          )
+          .easing(TWEEN.Easing.Cubic.Out)
+          .start()
+
+        new TWEEN.Tween(ref.position)
+          .to(
+            {
+              x: ref.position.x + offsetVal,
+              y: -0.453
+            }, 1300
+          )
+          .easing(TWEEN.Easing.Cubic.Out)
+          .start()
+      })
   }
 
   const validate_move = (oldPlace, newPlace) => {
@@ -247,10 +288,19 @@ export function Chessboard(props) {
     if (!active.activePiece) return
 
     if (!validate_move(active.activePiece, refCurrent)) return;
-    // reading centerr coordinates of clicked plane
-    // let vec = new Vector2();
-    // vec.x = (refCurrent.geometry.boundingBox.max.x + refCurrent.geometry.boundingBox.min.x) / 2;
-    // vec.y = (refCurrent.geometry.boundingBox.max.y + refCurrent.geometry.boundingBox.min.y) / 2; // this is the z axis value
+
+    // check if piece should be deleted
+    if (toDelete[0] != -1 && toDelete[1] != -1) {
+      // parse board coordinates
+      let pieceField = translate_board_to_location(toDelete)
+      // find piece Ref to remove
+      for (let [name, ref] of Object.entries(piecesRef.current)){
+        if ( ref.field == pieceField){
+          rollOffPiece(ref)
+        }
+      }
+      toDelete = [-1,-1]
+    }
 
     active.activePiece.field = refCurrent.field;
 
@@ -277,7 +327,7 @@ export function Chessboard(props) {
           new TWEEN.Tween(active.activePiece.position)
             .to(
               {
-                y: active.activePiece.position.y-1.7
+                y: -0.133,
               },
               250
             )
@@ -288,16 +338,9 @@ export function Chessboard(props) {
               setActive(prev => ({...prev, activePiece: null, whiteTurn: !prev.whiteTurn}))
             })
         }
+        
       )
   }
-  
-
-  // useEffect(()=>{
-  //   if (active.activePiece != null){
-  //     active.activePiece.material = materials.black_hover
-  //   }
-  // }
-  // , [active])
 
 
   return (
@@ -305,7 +348,7 @@ export function Chessboard(props) {
     <GameInfo whiteTurn={active.whiteTurn}/>
     <group ref={group} {...props}  dispose={null} castShadow>
       <group name="Scene" scale={[0.2,0.2,0.2]} >
-        {/* <Table receiveShadow={true} castShadow={true}/> */}
+        <Table receiveShadow={true} castShadow={true}/>
 
         <group>
           <group name="main" position={[0.439, -0.483, 0.051]} scale={[11.994, 11.595, 11.994]} >
