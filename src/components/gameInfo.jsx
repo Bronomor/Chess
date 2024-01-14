@@ -26,7 +26,6 @@ export default function GameInfo({whiteTurn, timeFormat, ...props}) {
 
   const updateTime = () => {
     if (whiteTurn) {
-      console.log(whiteTime%60)
       if(whiteTime <= 0) {
         alert("White lost on time!")
       } else {
