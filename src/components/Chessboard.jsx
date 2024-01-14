@@ -427,7 +427,7 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -469,7 +469,7 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
       {
         let oldValue = board[idx[2]][idx[3]]
         board[idx[2]][idx[3]] = FigureType;
@@ -510,7 +510,7 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -554,7 +554,7 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -576,8 +576,8 @@ function checkChessLogic( idx )
   else ( FigureType == 9 || FigureType == -9) // king
   {
    // move
-   if ( (Math.abs(idx[1] - idx[3]) == 0 || Math.abs(idx[0] - idx[2]) == 0 && Math.abs(idx[0] - idx[2]) == 1 ) || // vertical and horizontal
-        ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) && Math.abs(idx[1] - idx[3]) == 1))             // diagonal, but only 1 forward
+   if ( ( Math.abs(idx[1] - idx[3]) == 0 && Math.abs(idx[0] - idx[2]) == 1 ) || ( Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 0 ) || // vertical and horizontal
+        ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) && Math.abs(idx[1] - idx[3]) == 1) )             // diagonal, but only 1 forward
    {
     if ( FigureType == 9 && ( ( Math.abs(piecesPositions["BlackKing"][0] - idx[2]) < 2 ) && ( Math.abs(piecesPositions["BlackKing"][1] - idx[3]) < 2 ) )) // other king in neigberhood
     {
@@ -604,7 +604,7 @@ function checkChessLogic( idx )
       return "";
     }
     // attack
-    else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+    else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
     {
       toDelete = [idx[2],idx[3]]
       board[idx[2]][idx[3]] = FigureType;
