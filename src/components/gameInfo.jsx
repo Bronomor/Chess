@@ -59,7 +59,7 @@ export default function GameInfo({whiteTurn, timeFormat, ...props}) {
   return (
     <group {...props}>
       <Suspense>
-        <Center position={[0,.9,0]} >
+        <Center position={[0,0.87,0]} >
         <TextRing>
           {whiteTurn ? "White turn 🔲" : "Black turn 🔳"}
         </TextRing>

@@ -676,7 +676,8 @@ export function Chessboard({running, timeFormat, ...props}) {
   }
 
   const rollOffPiece = (ref) => {
-    const offset = randFloat(5, 7.5)
+    // const offset = randFloat(5, 7.5)
+    const offset = 6.2
     const type = ref.name[0]=='w' ? 1 : -1
     const offsetVal =  offset * type
     new TWEEN.Tween(ref.rotation)
