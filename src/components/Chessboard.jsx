@@ -32,15 +32,22 @@ import { randFloat, randInt } from 'three/src/math/MathUtils'
 // -9 <- black king
 
 const board = [
-	[ 5, 4, 3, 9, 8, 3, 4, 5 ],
+	[ 5, 4, 3, 8, 9, 3, 4, 5 ],
 	[ 1, 1, 1, 1, 1, 1, 1, 1 ],
 	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
 	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
 	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
 	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
 	[-1,-1,-1,-1,-1,-1,-1,-1 ], //black
-	[-5,-4,-3,-9,-8,-3,-4,-5 ]  // black
+	[-5,-4,-3,-8,-9,-3,-4,-5 ]  // black
 ]
+
+const piecesPositions =
+{
+  "BlackKing": [7,4],
+  "WhiteKing": [0,4],
+}
+
 let toDelete = [-1,-1]
 let toPromote = false
 
@@ -67,112 +74,548 @@ var reverseTranslateDictionary = {
 };
 
 // traslate to board represesntation
-function translate_location_to_board(from, to)
+function translateLocationToBoard(from, to)
 {
   // from 0, from 1 ; to 0 , to 1 indexes
   return [ parseInt(from[1])-1, parseInt(translateDictionary[from[0]]), parseInt(to[1])-1, parseInt(translateDictionary[to[0]]) ];
 }
 
-function translate_board_to_location(field) {
+function translateBoardToLocation(field) {
   return  reverseTranslateDictionary[field[1]] + (field[0]+1)
 }
 
-function check_chess_logic( idx )
+function isCheck(kingPosition , multipler)
+{
+  // is pawns check or left or right
+  if ( (kingPosition[0]+multipler >= 0 && kingPosition[0]+multipler < 8) && kingPosition[1]-1 >= 0 && board[kingPosition[0]+multipler][kingPosition[1]-1] == (1 * multipler))
+  {
+    return "Pawn Check";
+  }
+  if ( (kingPosition[0]+multipler >= 0 && kingPosition[0]+multipler < 8) && kingPosition[1]+1 < 8 && board[kingPosition[0]+multipler][kingPosition[1]+1] == (1 * multipler)) 
+  {
+    return "Pawn Check";
+  }
+
+  // check bishop and partial queen, positive right diagonal ( + , + )
+  var i = 1;
+  while ( kingPosition[0]+i < 8 && kingPosition[1]+i < 8 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]+i]
+    if ( figure == 0 )
+      i += 1;
+    else if ( figure == ( 3 * multipler) )
+    {
+      return "Bishop Check";
+    }
+    else if ( figure == ( 8 * multipler) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check bishop and partial queen, negative right diagonal ( - , - )
+  i = -1;
+  while ( kingPosition[0]+i >= 0 && kingPosition[1]+i >= 0 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]+i]
+    if ( figure == 0 )
+      i -= 1;
+    else if ( figure == ( 3 * multipler ) )
+    {
+      return "Bishop Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check bishop and partial queen, positive left diagonal ( + , - )
+  var i = 1;
+  while ( kingPosition[0]+i < 8 && kingPosition[1]-i >= 0 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]-i]
+    if ( figure == 0 )
+      i += 1;
+    else if ( figure == ( 3 * multipler ) )
+    {
+      return "Bishop Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check bishop and partial queen, negative left diagonal ( - , + )
+  i = -1;
+  while ( kingPosition[0]+i >= 0 && kingPosition[1]-i < 8 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]-i]
+    if ( figure == 0 )
+      i -= 1;
+    else if ( figure == ( 3 * multipler ) )
+    {
+      return "Bishop Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check rooks and queen vertically positive
+  i = 1;
+  while ( kingPosition[0]+i < 8 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]]
+    if ( figure == 0 )
+      i += 1;
+    else if ( figure == ( 5 * multipler ) )
+    {
+      return "Rook Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check rooks and queen vertically negative
+  i = -1;
+  while ( kingPosition[0]+i >= 0 )
+  {
+    let figure = board[kingPosition[0]+i][kingPosition[1]]
+    if ( figure == 0 )
+      i -= 1;
+    else if ( figure == ( 5 * multipler ) )
+    {
+      return "Rook Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+
+  // check rooks and queen horizontally positive
+  i = 1;
+  while ( kingPosition[1]+i < 8 )
+  {
+    let figure = board[kingPosition[0]][kingPosition[1]+i]
+    if ( figure == 0 )
+      i += 1;
+    else if ( figure == ( 5 * multipler ) )
+    {
+      return "Rook Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+
+  // check rooks and queen horizontally negative
+  i = -1;
+  while ( kingPosition[0]+i >= 0 )
+  {
+    let figure = board[kingPosition[0]][kingPosition[1]+i]
+    if ( figure == 0 )
+      i -= 1;
+    else if ( figure == ( 5 * multipler ) )
+    {
+      return "Rook Check";
+    }
+    else if ( figure == ( 8 * multipler ) )
+    {
+      return "Queen Check";
+    }
+    else break;
+  }
+  // check knight
+  if ( (kingPosition[0]+2 < 8 && kingPosition[1]-1 >= 0 && board[kingPosition[0]+2][kingPosition[1]-1] == (4 * multipler))
+    || (kingPosition[0]+2 < 8 && kingPosition[1]+1 < 8  && board[kingPosition[0]+2][kingPosition[1]+1] == (4 * multipler))
+    || (kingPosition[0]-2 >=0 && kingPosition[1]-1 >= 0 && board[kingPosition[0]-2][kingPosition[1]-1] == (4 * multipler))
+    || (kingPosition[0]-2 >=0 && kingPosition[1]+1 < 8  && board[kingPosition[0]-2][kingPosition[1]+1] == (4 * multipler))
+    || (kingPosition[0]+1 < 8 && kingPosition[1]-2 >= 0 && board[kingPosition[0]+1][kingPosition[1]-2] == (4 * multipler))
+    || (kingPosition[0]+1 < 8 && kingPosition[1]+2 < 8  && board[kingPosition[0]+1][kingPosition[1]+2] == (4 * multipler))
+    || (kingPosition[0]-1 >=0 && kingPosition[1]-2 >= 0 && board[kingPosition[0]-1][kingPosition[1]-2] == (4 * multipler))
+    || (kingPosition[0]-1 >=0 && kingPosition[1]+2 < 8  && board[kingPosition[0]-1][kingPosition[1]+2] == (4 * multipler))
+    ) 
+  {
+    return "Knight Check";
+  }
+
+  return "";
+}
+
+function checkChessLogic( idx )
 {
   const FigureType = board[idx[0]][idx[1]];
 
-  // console.log(FigureType)
-  // console.log(idx)
   if ( FigureType == 1 ) // white pawns
   {
     if( idx[1] == idx[3] && idx[2] - idx[0] == 1 && board[idx[2]][idx[3]] == 0) // check 1 forward 
     {
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = 1;
       board[idx[0]][idx[1]] = 0;
-      return 1;
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return "";
     }
     else if ( idx[1] == idx[3] && idx[2] - idx[0] == 2 && board[idx[2]][idx[3]] == 0 && idx[0] == 1 ) // check 2 forward 
     {
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = 1;
       board[idx[0]][idx[1]] = 0;
-      return 1;
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return "";
     }
     else if( idx[1] == idx[3] && idx[2] == 7 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
     {
-      toPromote = true
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = 8;
       board[idx[0]][idx[1]] = 0;
-      return 1; // to do promotion, remove pawn and add quen
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return ""; // to do promotion, remove pawn and add quen
     }
     else if ( (idx[1] == idx[3]-1 || idx[1] == idx[3]+1) && idx[2] - idx[0] == 1 ) // left or right attact
     {
       if ( board[idx[2]][idx[3]] == -1 || board[idx[2]][idx[3]] == -3 || board[idx[2]][idx[3]] == -4 || board[idx[2]][idx[3]] == -5 || board[idx[2]][idx[3]] == -8 )
       {
-        toDelete = [idx[2],idx[3]]
+        let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = 1;
         board[idx[0]][idx[1]] = 0;
-        return 1; // remove other pawn
-      }
-    }
-    // bicie w przelocie
 
-    return 0;
+        let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]] // remove other pawn
+        return ""; 
+      }
+    } 
   }
   else if ( FigureType == -1 ) // black pawn
   {
     if( idx[1] == idx[3] && idx[0] - idx[2] == 1 && board[idx[2]][idx[3]] == 0) // check 1 forward 
     {
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = -1;
       board[idx[0]][idx[1]] = 0;
-      return 1;
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return "";
     }
     else if ( idx[1] == idx[3] && idx[0] - idx[2] == 2 && board[idx[2]][idx[3]] == 0 && idx[0] == 6 ) // check 2 forward 
     {
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = -1;
       board[idx[0]][idx[1]] = 0;
-      return 1;
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return "";
     }
     else if( idx[1] == idx[3] && idx[2] == 0 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
     {
-      toPromote = true
+      let oldValue = board[idx[2]][idx[3]] 
       board[idx[2]][idx[3]] = -8;
       board[idx[0]][idx[1]] = 0;
-      return 1; // to do promotion, remove pawn and add quen
+
+      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      if (isCheckMessage != "") // king under attack
+      {  
+        board[idx[2]][idx[3]] = oldValue;
+        board[idx[0]][idx[1]] = FigureType;
+        return "After this move king will be under attack";
+      }
+
+      return ""; // to do promotion, remove pawn and add quen
     }
     else if ( (idx[1] == idx[3]-1 || idx[1] == idx[3]+1) && idx[0] - idx[2] == 1 ) // left or right attact
     {
       if ( board[idx[2]][idx[3]] == 1 || board[idx[2]][idx[3]] == 3 || board[idx[2]][idx[3]] == 4 || board[idx[2]][idx[3]] == 5 || board[idx[2]][idx[3]] == 8 )
       {
-        toDelete = [idx[2],idx[3]]
+        let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = -1;
         board[idx[0]][idx[1]] = 0;
-        return 1; // remove other pawn
+
+        let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]]
+        return ""; // remove other pawn
       }
     }
     // bicie w przelocie
   }
   else if ( FigureType == 3 || FigureType == -3) // bishops
   {
+     // left and right diagonal
+    if ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) )
+    {
+      // empty field
+      if( board[idx[2]][idx[3]] == 0)
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
 
+        let isCheckMessage = (FigureType == 3) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        return "";
+      }
+      // attack
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 3) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]]
+        return "";
+      } 
+    }
   }
   else if ( FigureType == 4 || FigureType == -4) // knights
   {
-    
+    // L moves
+    if ( (Math.abs(idx[0] - idx[2]) == 2 && Math.abs(idx[1] - idx[3]) == 1) || (Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 2) )
+    {
+      // empty field
+      if( board[idx[2]][idx[3]] == 0)
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 4) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        return "";
+      }
+      // attack
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      {
+        let oldValue = board[idx[2]][idx[3]]
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 4) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]]
+        return "";
+      } 
+    } 
   }
   else if ( FigureType == 5 || FigureType == -5) // rocks
   {
-    
+    // move
+    if ( Math.abs(idx[1] - idx[3]) == 0 || Math.abs(idx[0] - idx[2]) == 0 )
+    {
+      // empty field
+      if( board[idx[2]][idx[3]] == 0)
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 5) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+        return "";
+      }
+      // attack
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 5) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]]
+        return "";
+      } 
+    }
   }
   else if ( FigureType == 8 || FigureType == -8) // queen
   {
-    
+    // move
+    if ( (Math.abs(idx[1] - idx[3]) == 0 || Math.abs(idx[0] - idx[2]) == 0) || // vertical and horizontal
+        ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) ) // diaonal
+    )
+    {
+      // empty field
+      if( board[idx[2]][idx[3]] == 0)
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 8) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        return "";
+      }
+      // attack
+      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+      {
+        let oldValue = board[idx[2]][idx[3]] 
+        board[idx[2]][idx[3]] = FigureType;
+        board[idx[0]][idx[1]] = 0;
+
+        let isCheckMessage = (FigureType == 8) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+        if (isCheckMessage != "") // king under attack
+        {  
+          board[idx[2]][idx[3]] = oldValue;
+          board[idx[0]][idx[1]] = FigureType;
+          return "After this move king will be under attack";
+        }
+
+        toDelete = [idx[2],idx[3]]
+        return "";
+      } 
+    }
   }
-  else ( FigureType == 8 || FigureType == -8) // king
+  else ( FigureType == 9 || FigureType == -9) // king
   {
-    
+   // move
+   if ( (Math.abs(idx[1] - idx[3]) == 0 || Math.abs(idx[0] - idx[2]) == 0 && Math.abs(idx[0] - idx[2]) == 1 ) || // vertical and horizontal
+        ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) && Math.abs(idx[1] - idx[3]) == 1))             // diagonal, but only 1 forward
+   {
+    if ( FigureType == 9 && ( ( Math.abs(piecesPositions["BlackKing"][0] - idx[2]) < 2 ) && ( Math.abs(piecesPositions["BlackKing"][1] - idx[3]) < 2 ) )) // other king in neigberhood
+    {
+      return "Black king is too close";
+    }
+    else if (FigureType == -9 && ( (Math.abs(piecesPositions["WhiteKing"][0] - idx[2]) < 2) && ( Math.abs(piecesPositions["WhiteKing"][1] - idx[3]) < 2 ) ))
+    {
+      return "White king is too close";
+    }
+
+    // will be check after move ?
+    let isCheckMessage= (FigureType == 9) ? isCheck([ idx[2], idx[3] ], -1) : isCheck([ idx[2], idx[3] ], 1);
+    if (isCheckMessage != "") // king under attack
+    { 
+      return "Your king will be under attack. Please try other move!";
+    }
+
+    // empty field
+    if( board[idx[2]][idx[3]] == 0)
+    {
+      board[idx[2]][idx[3]] = FigureType;
+      board[idx[0]][idx[1]] = 0;
+      (FigureType == 9) ? piecesPositions["WhiteKing"] = [idx[2], idx[3]] : piecesPositions["BlackKing"] = [idx[2], idx[3]];
+      return "";
+    }
+    // attack
+    else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]] == 8) )
+    {
+      toDelete = [idx[2],idx[3]]
+      board[idx[2]][idx[3]] = FigureType;
+      board[idx[0]][idx[1]] = 0;
+      (FigureType == 9) ? piecesPositions["WhiteKing"] = [idx[2], idx[3]] : piecesPositions["BlackKing"] = [idx[2], idx[3]];
+      return "";
+    } 
+   }
   }
 
-  return 0; // incorrect move
+  return "Incorrect move. This figure cannot move in this way"; // incorrect move
 }
 
 export function Chessboard({running, timeFormat, ...props}) {
@@ -210,7 +653,7 @@ export function Chessboard({running, timeFormat, ...props}) {
       setActive({ ...active, activePiece: refCurrent})
     } else {
       if (refCurrent == active.activePiece) {
-        reset_figure()
+        resetFigure()
       } else {
         tileOnClick(e, refCurrent)
       }
@@ -219,7 +662,7 @@ export function Chessboard({running, timeFormat, ...props}) {
     // refCurrent.position.z += 0.89957142857
   }
 
-  const reset_figure = () => {
+  const resetFigure = () => {
     // reset piece
     new TWEEN.Tween(active.activePiece.position)
     .to(
@@ -264,22 +707,57 @@ export function Chessboard({running, timeFormat, ...props}) {
       })
   }
 
-  const validate_move = (oldPlace, newPlace) => {
+  const checkMate = (indexes) =>
+  {
+    // check if something attack king
+
+    // check if king can escape
+    return 0;
+  }
+
+  const checkStalemate = (moveColor) =>
+  {
+    // iterate over figures (board) , and check that can have valid move 
+    return 0;
+  }
+
+  const validateMove = (oldPlace, newPlace) => {
 
     // check turn
     const pieceColor = active.activePiece.name[0]
     if (active.whiteTurn && pieceColor != 'w' || !active.whiteTurn && pieceColor != 'b') {
 
       // reset figure and throw alert
-      reset_figure()
+      resetFigure()
       alert("Different player should have moved ")
       return 0;
     } 
 
-    let idexes = translate_location_to_board(oldPlace.field, newPlace.field);
-    if ( !check_chess_logic(idexes) )
+    let indexes = translateLocationToBoard(oldPlace.field, newPlace.field);
+
+    // is Check
+    //let isCheckMessage = (pieceColor == 'w') ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+    //console.log("message:", isCheckMessage);
+    //if (isCheckMessage != "") // king under attack
+    //{  
+    //  alert(isCheckMessage + "You need to secure the king from check ")
+    //  return 0;
+    //}
+
+    // check mate
+    //if ( !checkMate(indexes) )
+    // {
+    //   alert("Incorrect Move");
+    //   return 0;
+    // }
+
+    // check stalemate ?
+
+    // check that move is correct
+    let logicMessage = checkChessLogic(indexes)
+    if ( logicMessage != "" )
     {
-      alert("Incorrect Move");
+      alert(logicMessage);
       return 0;
     }
 
@@ -291,12 +769,12 @@ export function Chessboard({running, timeFormat, ...props}) {
     
     if (!active.activePiece) return
 
-    if (!validate_move(active.activePiece, refCurrent)) return;
+    if (!validateMove(active.activePiece, refCurrent)) return;
 
     // check if piece should be deleted
     if (toDelete[0] != -1 && toDelete[1] != -1) {
       // parse board coordinates
-      let pieceField = translate_board_to_location(toDelete)
+      let pieceField = translateBoardToLocation(toDelete)
       // find piece Ref to remove
       for (let [name, ref] of Object.entries(piecesRef.current)){
         if ( ref.field == pieceField){
@@ -509,12 +987,5 @@ export function Chessboard({running, timeFormat, ...props}) {
       </>
         )
 }
-
-// loaded but not used models
-// <mesh name="pawn001" geometry={nodes.pawn001.geometry} material={materials.black_hover} position={[-8.104, -0.162, 0]} scale={0.22} />
-// <mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} /><mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} />
-// <mesh name="pawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
-// <mesh name="black_pawn" geometry={nodes.black_pawn.geometry} material={materials.black_marble} position={[3.587, -0.133, -2.188]} scale={0.22} />
-//   ref={planesRef["A1"]}
 
 useGLTF.preload('/assets/chessboard.glb')
