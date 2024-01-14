@@ -42,6 +42,7 @@ const board = [
 	[-5,-4,-3,-9,-8,-3,-4,-5 ]  // black
 ]
 let toDelete = [-1,-1]
+let toPromote = false
 
 var translateDictionary = {
   A: "0",
@@ -98,6 +99,7 @@ function check_chess_logic( idx )
     }
     else if( idx[1] == idx[3] && idx[2] == 7 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
     {
+      toPromote = true
       board[idx[2]][idx[3]] = 8;
       board[idx[0]][idx[1]] = 0;
       return 1; // to do promotion, remove pawn and add quen
@@ -132,6 +134,7 @@ function check_chess_logic( idx )
     }
     else if( idx[1] == idx[3] && idx[2] == 0 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
     {
+      toPromote = true
       board[idx[2]][idx[3]] = -8;
       board[idx[0]][idx[1]] = 0;
       return 1; // to do promotion, remove pawn and add quen
@@ -172,7 +175,7 @@ function check_chess_logic( idx )
   return 0; // incorrect move
 }
 
-export function Chessboard(props) {
+export function Chessboard({running, timeFormat, ...props}) {
   const group = useRef()
   const piecesRef = useRef([]);
   const planesRef = useRef([])
@@ -230,11 +233,12 @@ export function Chessboard(props) {
   }
 
   const rollOffPiece = (ref) => {
-    const offset = randFloat(5, 10)
-    const offsetVal = ref.name[0]=='w' ? offset : -offset
+    const offset = randFloat(5, 7.5)
+    const type = ref.name[0]=='w' ? 1 : -1
+    const offsetVal =  offset * type
     new TWEEN.Tween(ref.rotation)
       .to({
-        x: Math.PI/2
+        x: type * Math.PI/2
       }, 400 
       )
       .start()
@@ -243,7 +247,7 @@ export function Chessboard(props) {
           .to(
             {
               y: Math.PI * offsetVal
-            }, 1300
+            }, 1500
           )
           .easing(TWEEN.Easing.Cubic.Out)
           .start()
@@ -251,9 +255,9 @@ export function Chessboard(props) {
         new TWEEN.Tween(ref.position)
           .to(
             {
-              x: ref.position.x + offsetVal,
-              y: -0.453
-            }, 1300
+              x:  offsetVal,
+              y: -0.423
+            }, 1500
           )
           .easing(TWEEN.Easing.Cubic.Out)
           .start()
@@ -297,6 +301,7 @@ export function Chessboard(props) {
       for (let [name, ref] of Object.entries(piecesRef.current)){
         if ( ref.field == pieceField){
           rollOffPiece(ref)
+          playCaptureAudio(true)
         }
       }
       toDelete = [-1,-1]
@@ -345,7 +350,7 @@ export function Chessboard(props) {
 
   return (
     <>
-    <GameInfo whiteTurn={active.whiteTurn}/>
+    <GameInfo key={running} whiteTurn={active.whiteTurn} timeFormat={timeFormat}/>
     <group ref={group} {...props}  dispose={null} castShadow>
       <group name="Scene" scale={[0.2,0.2,0.2]} >
         <Table receiveShadow={true} castShadow={true}/>
