@@ -31,7 +31,7 @@ import { randFloat, randInt } from 'three/src/math/MathUtils'
 // -8 <- black queen
 // -9 <- black king
 
-const board = [
+let board = [
 	[ 5, 4, 3, 8, 9, 3, 4, 5 ],
 	[ 1, 1, 1, 1, 1, 1, 1, 1 ],
 	[ 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -42,7 +42,7 @@ const board = [
 	[-5,-4,-3,-8,-9,-3,-4,-5 ]  // black
 ]
 
-const piecesPositions =
+let piecesPositions =
 {
   "BlackKing": [7,4],
   "WhiteKing": [0,4],
@@ -576,7 +576,7 @@ function checkChessLogic( idx )
   else ( FigureType == 9 || FigureType == -9) // king
   {
    // move
-   if ( ( Math.abs(idx[1] - idx[3]) == 0 && Math.abs(idx[0] - idx[2]) == 1 ) || ( Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 0 ) || // vertical and horizontal
+   if ( ( Math.abs(idx[0] - idx[2]) == 0 && Math.abs(idx[1] - idx[3]) == 1 ) || ( Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 0 ) || // vertical and horizontal
         ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) && Math.abs(idx[1] - idx[3]) == 1) )             // diagonal, but only 1 forward
    {
     if ( FigureType == 9 && ( ( Math.abs(piecesPositions["BlackKing"][0] - idx[2]) < 2 ) && ( Math.abs(piecesPositions["BlackKing"][1] - idx[3]) < 2 ) )) // other king in neigberhood
@@ -632,6 +632,26 @@ export function Chessboard({running, timeFormat, ...props}) {
 
   const [moveAudioPlaying, playMoveAudio] = useAudio('/move-self.mp3');
   const [captureAudioPlaying, playCaptureAudio] = useAudio('/capture.mp3');
+
+  useEffect(() => {
+    board = [
+      [ 5, 4, 3, 8, 9, 3, 4, 5 ],
+      [ 1, 1, 1, 1, 1, 1, 1, 1 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [-1,-1,-1,-1,-1,-1,-1,-1 ], //black
+      [-5,-4,-3,-8,-9,-3,-4,-5 ]  // black
+    ]
+  
+    piecesPositions =
+    {
+      "BlackKing": [7,4],
+      "WhiteKing": [0,4],
+    }
+  
+  }, []);
 
   useFrame(()=>{
     TWEEN.update()
