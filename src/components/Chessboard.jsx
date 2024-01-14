@@ -49,6 +49,7 @@ const piecesPositions =
 }
 
 let toDelete = [-1,-1]
+let toPromote = false
 
 var translateDictionary = {
   A: "0",
@@ -617,7 +618,7 @@ function checkChessLogic( idx )
   return "Incorrect move. This figure cannot move in this way"; // incorrect move
 }
 
-export function Chessboard(props) {
+export function Chessboard({running, timeFormat, ...props}) {
   const group = useRef()
   const piecesRef = useRef([]);
   const planesRef = useRef([])
@@ -675,11 +676,12 @@ export function Chessboard(props) {
   }
 
   const rollOffPiece = (ref) => {
-    const offset = randFloat(5, 10)
-    const offsetVal = ref.name[0]=='w' ? offset : -offset
+    const offset = randFloat(5, 7.5)
+    const type = ref.name[0]=='w' ? 1 : -1
+    const offsetVal =  offset * type
     new TWEEN.Tween(ref.rotation)
       .to({
-        x: Math.PI/2
+        x: type * Math.PI/2
       }, 400 
       )
       .start()
@@ -688,7 +690,7 @@ export function Chessboard(props) {
           .to(
             {
               y: Math.PI * offsetVal
-            }, 1300
+            }, 1500
           )
           .easing(TWEEN.Easing.Cubic.Out)
           .start()
@@ -696,9 +698,9 @@ export function Chessboard(props) {
         new TWEEN.Tween(ref.position)
           .to(
             {
-              x: ref.position.x + offsetVal,
-              y: -0.453
-            }, 1300
+              x:  offsetVal,
+              y: -0.423
+            }, 1500
           )
           .easing(TWEEN.Easing.Cubic.Out)
           .start()
@@ -777,6 +779,7 @@ export function Chessboard(props) {
       for (let [name, ref] of Object.entries(piecesRef.current)){
         if ( ref.field == pieceField){
           rollOffPiece(ref)
+          playCaptureAudio(true)
         }
       }
       toDelete = [-1,-1]
@@ -825,7 +828,7 @@ export function Chessboard(props) {
 
   return (
     <>
-    <GameInfo whiteTurn={active.whiteTurn}/>
+    <GameInfo key={running} whiteTurn={active.whiteTurn} timeFormat={timeFormat}/>
     <group ref={group} {...props}  dispose={null} castShadow>
       <group name="Scene" scale={[0.2,0.2,0.2]} >
         <Table receiveShadow={true} castShadow={true}/>
@@ -984,12 +987,5 @@ export function Chessboard(props) {
       </>
         )
 }
-
-// loaded but not used models
-// <mesh name="pawn001" geometry={nodes.pawn001.geometry} material={materials.black_hover} position={[-8.104, -0.162, 0]} scale={0.22} />
-// <mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} /><mesh name="rook001" geometry={nodes.rook001.geometry} material={materials.black} position={[-2.71, -0.133, 3.199]} scale={0.16} />
-// <mesh name="pawn" geometry={nodes.pawn.geometry} material={materials.black} position={[-2.71, -0.133, -2.198]} scale={0.22} />
-// <mesh name="black_pawn" geometry={nodes.black_pawn.geometry} material={materials.black_marble} position={[3.587, -0.133, -2.188]} scale={0.22} />
-//   ref={planesRef["A1"]}
 
 useGLTF.preload('/assets/chessboard.glb')
