@@ -366,22 +366,6 @@ function checkChessLogic( idx )
 
       return "";
     }
-    else if( idx[1] == idx[3] && idx[2] == 0 && board[idx[2]][idx[3]] == 0 ) // promotion to queen - automaticaly
-    {
-      let oldValue = board[idx[2]][idx[3]] 
-      board[idx[2]][idx[3]] = -8;
-      board[idx[0]][idx[1]] = 0;
-
-      let isCheckMessage = (FigureType == 1) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
-      if (isCheckMessage != "") // king under attack
-      {  
-        board[idx[2]][idx[3]] = oldValue;
-        board[idx[0]][idx[1]] = FigureType;
-        return "After this move king will be under attack";
-      }
-
-      return ""; // to do promotion, remove pawn and add quen
-    }
     else if ( (idx[1] == idx[3]-1 || idx[1] == idx[3]+1) && idx[0] - idx[2] == 1 ) // left or right attact
     {
       if ( board[idx[2]][idx[3]] == 1 || board[idx[2]][idx[3]] == 3 || board[idx[2]][idx[3]] == 4 || board[idx[2]][idx[3]] == 5 || board[idx[2]][idx[3]] == 8 )
@@ -400,7 +384,7 @@ function checkChessLogic( idx )
 
         toDelete = [idx[2],idx[3]]
         return ""; // remove other pawn
-      }
+      } 
     }
     // bicie w przelocie
   }
@@ -409,6 +393,7 @@ function checkChessLogic( idx )
      // left and right diagonal
     if ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) )
     {
+      let multipler = (FigureType == 3) ? -1 : 1;
       // empty field
       if( board[idx[2]][idx[3]] == 0)
       {
@@ -427,7 +412,8 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
+      else if( board[idx[2]][idx[3]] == (1 * multipler) || board[idx[2]][idx[3]] == (3 * multipler) || board[idx[2]][idx[3]] == ( 4 * multipler ) 
+      || board[idx[2]][idx[3]] == ( 5 * multipler ) || board[idx[2]][idx[3]] == ( 8 * multipler) )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -451,6 +437,7 @@ function checkChessLogic( idx )
     // L moves
     if ( (Math.abs(idx[0] - idx[2]) == 2 && Math.abs(idx[1] - idx[3]) == 1) || (Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 2) )
     {
+      let multipler = (FigureType == 4) ? -1 : 1;
       // empty field
       if( board[idx[2]][idx[3]] == 0)
       {
@@ -469,7 +456,8 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
+      else if( board[idx[2]][idx[3]] == (1 * multipler) || board[idx[2]][idx[3]] == (3 * multipler) || board[idx[2]][idx[3]] == ( 4 * multipler ) 
+      || board[idx[2]][idx[3]] == ( 5 * multipler ) || board[idx[2]][idx[3]] == ( 8 * multipler) )
       {
         let oldValue = board[idx[2]][idx[3]]
         board[idx[2]][idx[3]] = FigureType;
@@ -493,6 +481,7 @@ function checkChessLogic( idx )
     // move
     if ( Math.abs(idx[1] - idx[3]) == 0 || Math.abs(idx[0] - idx[2]) == 0 )
     {
+      let multipler = (FigureType == 5) ? -1 : 1;
       // empty field
       if( board[idx[2]][idx[3]] == 0)
       {
@@ -510,7 +499,8 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
+      else if( board[idx[2]][idx[3]] == (1 * multipler) || board[idx[2]][idx[3]] == (3 * multipler) || board[idx[2]][idx[3]] == ( 4 * multipler ) 
+      || board[idx[2]][idx[3]] == ( 5 * multipler ) || board[idx[2]][idx[3]] == ( 8 * multipler) )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -536,6 +526,7 @@ function checkChessLogic( idx )
         ( Math.abs(idx[0] - idx[2]) == Math.abs(idx[1] - idx[3]) ) // diaonal
     )
     {
+      let multipler = (FigureType == 8) ? -1 : 1;
       // empty field
       if( board[idx[2]][idx[3]] == 0)
       {
@@ -554,7 +545,8 @@ function checkChessLogic( idx )
         return "";
       }
       // attack
-      else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
+      else if( board[idx[2]][idx[3]] == (1 * multipler) || board[idx[2]][idx[3]] == (3 * multipler) || board[idx[2]][idx[3]] == ( 4 * multipler ) 
+      || board[idx[2]][idx[3]] == ( 5 * multipler ) || board[idx[2]][idx[3]] == ( 8 * multipler) )
       {
         let oldValue = board[idx[2]][idx[3]] 
         board[idx[2]][idx[3]] = FigureType;
@@ -573,7 +565,7 @@ function checkChessLogic( idx )
       } 
     }
   }
-  else ( FigureType == 9 || FigureType == -9) // king
+  else if ( FigureType == 9 || FigureType == -9) // king
   {
    // move
    if ( ( Math.abs(idx[0] - idx[2]) == 0 && Math.abs(idx[1] - idx[3]) == 1 ) || ( Math.abs(idx[0] - idx[2]) == 1 && Math.abs(idx[1] - idx[3]) == 0 ) || // vertical and horizontal
@@ -590,6 +582,7 @@ function checkChessLogic( idx )
 
     // will be check after move ?
     let isCheckMessage= (FigureType == 9) ? isCheck([ idx[2], idx[3] ], -1) : isCheck([ idx[2], idx[3] ], 1);
+    let multipler = (FigureType == 9) ? -1 : 1;
     if (isCheckMessage != "") // king under attack
     { 
       return "Your king will be under attack. Please try other move!";
@@ -604,7 +597,8 @@ function checkChessLogic( idx )
       return "";
     }
     // attack
-    else if( Math.abs(board[idx[2]][idx[3]]) == 1 || Math.abs(board[idx[2]][idx[3]]) == 3 || Math.abs(board[idx[2]][idx[3]]) == 4 || Math.abs(board[idx[2]][idx[3]]) == 5 || Math.abs(board[idx[2]][idx[3]]) == 8 )
+    else if( board[idx[2]][idx[3]] == (1 * multipler) || board[idx[2]][idx[3]] == (3 * multipler) || board[idx[2]][idx[3]] == ( 4 * multipler ) 
+    || board[idx[2]][idx[3]] == ( 5 * multipler ) || board[idx[2]][idx[3]] == ( 8 * multipler) )
     {
       toDelete = [idx[2],idx[3]]
       board[idx[2]][idx[3]] = FigureType;
@@ -728,20 +722,6 @@ export function Chessboard({running, timeFormat, ...props}) {
       })
   }
 
-  const checkMate = (indexes) =>
-  {
-    // check if something attack king
-
-    // check if king can escape
-    return 0;
-  }
-
-  const checkStalemate = (moveColor) =>
-  {
-    // iterate over figures (board) , and check that can have valid move 
-    return 0;
-  }
-
   const validateMove = (oldPlace, newPlace) => {
 
     // check turn
@@ -756,24 +736,6 @@ export function Chessboard({running, timeFormat, ...props}) {
 
     let indexes = translateLocationToBoard(oldPlace.field, newPlace.field);
 
-    // is Check
-    //let isCheckMessage = (pieceColor == 'w') ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
-    //console.log("message:", isCheckMessage);
-    //if (isCheckMessage != "") // king under attack
-    //{  
-    //  alert(isCheckMessage + "You need to secure the king from check ")
-    //  return 0;
-    //}
-
-    // check mate
-    //if ( !checkMate(indexes) )
-    // {
-    //   alert("Incorrect Move");
-    //   return 0;
-    // }
-
-    // check stalemate ?
-
     // check that move is correct
     let logicMessage = checkChessLogic(indexes)
     if ( logicMessage != "" )
@@ -783,6 +745,205 @@ export function Chessboard({running, timeFormat, ...props}) {
     }
 
     return 1;
+  }
+
+  const validateMoveNumbers = (oldPlace, newPlace) => {
+
+    // check that move is correct
+    let logicMessage = checkChessLogic( [ oldPlace[0], oldPlace[1], newPlace[0], newPlace[1] ] )
+    if ( logicMessage != "" )
+      return 0;
+
+    return 1;
+  }
+
+  function CheckMateIsStill(figureType, i, j, i2, j2)
+  {
+    if ( ( i2 < 0 || i2 > 7 ) || ( j2 < 0 || j2 > 7 ))
+      return "still";
+
+    let FigureSafe = board[i2][j2];
+
+    // old value safe ? 
+    if( validateMoveNumbers( [i,j], [i2,j2] ) ) // 1 forward
+    {
+      let isCheckMessage = (figureType > 0) ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+      board[i2][j2] = FigureSafe;
+      board[i][j] = figureType;
+
+      if (isCheckMessage)
+        return "still";
+    }
+    else 
+    {
+      board[i2][j2] = FigureSafe;
+      board[i][j] = figureType;
+      return "still";
+    }
+    
+    board[i2][j2] = FigureSafe;
+    board[i][j] = figureType;
+    return "";
+  }
+
+  const checkMate = ( multiplier ) =>
+  {
+    for (let i=0; i<8; i++)
+    {
+      for (let j=0; j<8; j++)
+      {
+        if ( (board[i][j] <= multiplier && multiplier == -1 ) || (board[i][j] >= multiplier && multiplier == 1) )
+        {
+          let figureType = board[i][j];
+
+          if (figureType == 1 ) // ruchy pionka
+          {
+            if ( CheckMateIsStill(figureType, i, j, i+1, j) == "")
+              return "";
+            
+            if ( CheckMateIsStill(figureType, i, j, i+2, j) == "")
+              return "";
+            
+            if ( CheckMateIsStill(figureType, i, j, i+1, j+1) == "")
+              return "";
+
+            if ( CheckMateIsStill(figureType, i, j, i+1, j-1) == "")
+              return "";
+          }
+          else if (figureType == -1 ) // ruchy pionka
+          {
+            if ( CheckMateIsStill(figureType, i, j, i-1, j) == "")
+              return "";
+            
+            if ( CheckMateIsStill(figureType, i, j, i-2, j) == "")
+              return "";
+            
+            if ( CheckMateIsStill(figureType, i, j, i-1, j+1) == "")
+              return "";
+
+            if ( CheckMateIsStill(figureType, i, j, i-1, j-1) == "")
+              return "";
+          }
+          else if (figureType == ( 3 * multiplier ) ) // ruchy gońca
+          {
+            for (let x=1; x<8; x++)
+            {
+              if ( CheckMateIsStill( figureType , i, j, i+x, j+x) == "")
+                return "";
+              
+              if ( CheckMateIsStill( figureType , i, j, i-x, j+x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i+x, j-x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i-x, j-x) == "")
+                return "";
+            }
+          }
+          else if (figureType == ( 4 * multiplier ) ) // ruchy skoczka
+          {
+            if ( CheckMateIsStill( figureType , i, j, i+2, j+1) == "")
+              return "";
+              
+            if ( CheckMateIsStill( figureType , i, j, i+2, j-1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i+1, j+2) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i+1, j-2) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i-1, j+2) == "")
+              return "";
+            
+            if ( CheckMateIsStill( figureType , i, j, i-1, j-2) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i-2, j+1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i-2, j-1) == "")
+              return "";
+          }
+          else if (figureType == ( 5 * multiplier ) ) // ruchy wieży
+          {
+            for (let x=1; x<8; x++)
+            {
+              if ( CheckMateIsStill( figureType , i, j, i+x, j) == "")
+                return "";
+              
+              if ( CheckMateIsStill( figureType , i, j, i-x, j) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i, j+x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i, j-x) == "")
+                return "";
+            }
+          }
+          else if (figureType == ( 8 * multiplier ) ) // ruchy hetmana
+          {
+            for (let x=1; x<8; x++)
+            {
+              if ( CheckMateIsStill( figureType , i, j, i+x, j+x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i+x, j-x) == "")
+                return "";
+              
+              if ( CheckMateIsStill( figureType , i, j, i-x, j+x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i-x, j-x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i+x, j) == "")
+                return "";
+              
+              if ( CheckMateIsStill( figureType , i, j, i-x, j) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i, j+x) == "")
+                return "";
+
+              if ( CheckMateIsStill( figureType , i, j, i, j-x) == "")
+                return "";
+            }
+          }
+          else if (figureType == ( 9 * multiplier ) ) // ruchy króla
+          {
+            if ( CheckMateIsStill( figureType , i, j, i+1, j+1) == "")
+                return "";
+            
+            if ( CheckMateIsStill( figureType , i, j, i+1, j) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i+1, j-1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i-1, j-1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i-1, j) == "")
+              return "";
+            
+            if ( CheckMateIsStill( figureType , i, j, i-1, j+1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i, j+1) == "")
+              return "";
+
+            if ( CheckMateIsStill( figureType , i, j, i, j-1) == "")
+              return "";
+          }
+
+        }
+      }
+    }
+    return "Mate";
   }
 
   const tileOnClick = (e, refCurrent) => {
@@ -803,10 +964,25 @@ export function Chessboard({running, timeFormat, ...props}) {
           playCaptureAudio(true)
         }
       }
-      toDelete = [-1,-1]
+      toDelete = [-1,-1]    
     }
 
     active.activePiece.field = refCurrent.field;
+
+    let isCheckMessage = (active.activePiece.name[0] == 'b') ? isCheck(piecesPositions["WhiteKing"], -1) : isCheck(piecesPositions["BlackKing"], 1);
+
+
+    if (isCheckMessage != "") // king under attack
+    {  
+      // check mate
+      if ( checkMate( (active.activePiece.name[0] == 'w') ? -1 : 1) == "Mate" )
+      {
+         if (active.activePiece.name[0] == 'w') 
+          alert("Is a checkmate bro! Black Win");
+        else 
+          alert("Is a checkmate bro! White Win");
+      }
+    }
 
     new TWEEN.Tween(active.activePiece.position)
       .to(
